@@ -91,7 +91,7 @@ export default function DriverPage() {
           status: "Live Tracking Active",
           latitude: lat,
           longitude: lng,
-          currentLocation: `GPS active: ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+          currentLocation: "Live GPS active — approximate location updating",
           lastUpdated: new Date().toLocaleTimeString(),
         });
 
