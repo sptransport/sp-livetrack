@@ -1,14 +1,24 @@
 "use client";
 
-import AuthGate from "@/components/AuthGate";
-
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-function NewJobPageContent() {
+function makePrivateTrackingId(baseId) {
+  const cleanedBase = baseId.trim().toUpperCase();
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let suffix = "";
+
+  for (let i = 0; i < 4; i++) {
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return `${cleanedBase}-${suffix}`;
+}
+
+export default function NewJobPage() {
   const [form, setForm] = useState({
-    jobId: "",
+    baseJobId: "",
     customerName: "",
     vehicle: "",
     pickup: "",
@@ -35,19 +45,32 @@ function NewJobPageContent() {
   async function createJob(e) {
     e.preventDefault();
 
-    if (!form.jobId || !form.vehicle || !form.pickup || !form.dropoff) {
+    if (!form.baseJobId || !form.vehicle || !form.pickup || !form.dropoff) {
       setMessage("Please enter at least tracking number, vehicle, pickup, and drop-off.");
       return;
     }
 
+    const privateJobId = makePrivateTrackingId(form.baseJobId);
+
     try {
       await addDoc(collection(db, "Jobs"), {
-        ...form,
+        jobId: privateJobId,
+        baseJobId: form.baseJobId.trim().toUpperCase(),
+        customerName: form.customerName,
+        vehicle: form.vehicle,
+        pickup: form.pickup,
+        dropoff: form.dropoff,
+        eta: form.eta,
+        status: form.status,
+        currentLocation: form.currentLocation,
         progress: Number(form.progress),
+        trackingActive: form.trackingActive,
+        trackingPaused: form.trackingPaused,
+        lastUpdated: form.lastUpdated,
         createdAt: new Date().toISOString(),
       });
 
-      setCreatedJobId(form.jobId);
+      setCreatedJobId(privateJobId);
       setMessage("Job created successfully.");
     } catch (error) {
       console.error(error);
@@ -64,7 +87,7 @@ function NewJobPageContent() {
           </p>
           <h1 className="mt-2 text-4xl font-bold">Create New Transport</h1>
           <p className="mt-2 text-neutral-600">
-            Create a customer tracking link for a new S&P Transports job.
+            Create a private customer tracking link for a new S&P Transports job.
           </p>
         </header>
 
@@ -72,14 +95,17 @@ function NewJobPageContent() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-bold uppercase text-neutral-500">
-                Tracking number
+                Base tracking number
               </label>
               <input
-                className="mt-2 w-full rounded-2xl border p-3"
+                className="mt-2 w-full rounded-2xl border p-3 uppercase"
                 placeholder="SP-2409"
-                value={form.jobId}
-                onChange={(e) => updateField("jobId", e.target.value)}
+                value={form.baseJobId}
+                onChange={(e) => updateField("baseJobId", e.target.value)}
               />
+              <p className="mt-2 text-xs text-neutral-500">
+                App will create a private version like SP-2409-X7K2.
+              </p>
             </div>
 
             <div>
@@ -178,7 +204,7 @@ function NewJobPageContent() {
             type="submit"
             className="mt-6 w-full rounded-2xl bg-black px-5 py-4 font-bold text-white"
           >
-            Create Transport Job
+            Create Private Tracking Link
           </button>
 
           {message && <p className="mt-4 text-sm font-semibold">{message}</p>}
@@ -186,6 +212,11 @@ function NewJobPageContent() {
           {createdJobId && (
             <div className="mt-6 rounded-3xl bg-neutral-100 p-5">
               <p className="text-sm font-bold uppercase text-neutral-500">
+                Private tracking number
+              </p>
+              <p className="mt-2 text-2xl font-bold">{createdJobId}</p>
+
+              <p className="mt-4 text-sm font-bold uppercase text-neutral-500">
                 Customer tracking link
               </p>
               <p className="mt-2 break-all font-bold">
@@ -228,13 +259,5 @@ function NewJobPageContent() {
         </form>
       </div>
     </main>
-  );
-}
-
-export default function NewJobPage() {
-  return (
-    <AuthGate>
-      <NewJobPageContent />
-    </AuthGate>
   );
 }
