@@ -1,10 +1,12 @@
 "use client";
 
+import AuthGate from "@/components/AuthGate";
+
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function NewJobPage() {
+function NewJobPageContent() {
   const [form, setForm] = useState({
     jobId: "",
     customerName: "",
@@ -226,5 +228,13 @@ export default function NewJobPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function NewJobPage() {
+  return (
+    <AuthGate>
+      <NewJobPageContent />
+    </AuthGate>
   );
 }

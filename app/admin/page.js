@@ -1,5 +1,7 @@
 "use client";
 
+import AuthGate from "@/components/AuthGate";
+
 import { useEffect, useState } from "react";
 import {
   collection,
@@ -12,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function AdminPage() {
+function AdminPageContent() {
   const [jobId, setJobId] = useState("SP-2408");
   const [docId, setDocId] = useState(null);
   const [job, setJob] = useState(null);
@@ -350,5 +352,13 @@ export default function AdminPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <AuthGate>
+      <AdminPageContent />
+    </AuthGate>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import AuthGate from "@/components/AuthGate";
+
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
@@ -13,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function DriverPage() {
+function DriverPageContent() {
   const params = useParams();
   const jobId = params.jobId;
 
@@ -271,5 +273,13 @@ export default function DriverPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function DriverPage() {
+  return (
+    <AuthGate>
+      <DriverPageContent />
+    </AuthGate>
   );
 }
