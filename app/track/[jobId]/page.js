@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
+import {
+  collection,
+  limit,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function TrackingPage() {
@@ -13,29 +19,32 @@ export default function TrackingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadJob() {
-      try {
-        const q = query(
-          collection(db, "Jobs"),
-          where("jobId", "==", jobId),
-          limit(1)
-        );
+    if (!jobId) return;
 
-        const snapshot = await getDocs(q);
+    const q = query(
+      collection(db, "Jobs"),
+      where("jobId", "==", jobId),
+      limit(1)
+    );
 
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
         if (!snapshot.empty) {
           setJob(snapshot.docs[0].data());
         } else {
           setJob(null);
         }
-      } catch (error) {
-        console.error("Error loading job:", error);
-      } finally {
+
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error loading live job:", error);
         setLoading(false);
       }
-    }
+    );
 
-    if (jobId) loadJob();
+    return () => unsubscribe();
   }, [jobId]);
 
   if (loading) {
